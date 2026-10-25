@@ -28,14 +28,22 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public BankAccountResponseDTO saveAccount(BankAccountRequestDTO requestDTO) {
-        // 1. Utilisation du mapper pour transformer le DTO en Entité
-        BankAccount bankAccount = bankAccountMapper.toBankAccount(requestDTO);
 
-        // 3. Sauvegarde en base de données
-        BankAccount savedBankAccount = bankAccountRepository.save(bankAccount);
+        try {
+            Customer customer = customerRestClient.getCustomerById(requestDTO.getCustomerId());
+            BankAccount bankAccount = bankAccountMapper.toBankAccount(requestDTO);
 
-        // 4. Retour du DTO de réponse
-        return bankAccountMapper.fromBankAccount(savedBankAccount);
+            // 3. Sauvegarde en base de données
+            BankAccount savedBankAccount = bankAccountRepository.save(bankAccount);
+
+            // 4. Transformation en DTO de réponse et association du client
+            BankAccountResponseDTO responseDTO = bankAccountMapper.fromBankAccount(savedBankAccount);
+            responseDTO.setCustomer(customer);
+            return responseDTO;
+
+        }catch (Exception e){
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     @Override
@@ -63,15 +71,31 @@ public class BankAccountServiceImpl implements BankAccountService {
 
     @Override
     public BankAccountResponseDTO updateAccount(String id, BankAccountRequestDTO requestDTO) {
+        // 1. Vérifier si le compte existe
         BankAccount bankAccount = bankAccountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Compte bancaire introuvable"));
 
-        if (requestDTO.getBalance() != null) bankAccount.setBalance(requestDTO.getBalance());
-        if (requestDTO.getCurrency() != null) bankAccount.setCurrency(requestDTO.getCurrency());
-        if (requestDTO.getType() != null) bankAccount.setType(requestDTO.getType());
+        // 2. Mettre à jour uniquement les champs autorisés (sans toucher au customerId)
+        if (requestDTO.getBalance() != null) {
+            bankAccount.setBalance(requestDTO.getBalance());
+        }
+        if (requestDTO.getCurrency() != null) {
+            bankAccount.setCurrency(requestDTO.getCurrency());
+        }
+        if (requestDTO.getType() != null) {
+            bankAccount.setType(requestDTO.getType());
+        }
 
+        // 3. Sauvegarde des modifications en base de données
         BankAccount updatedAccount = bankAccountRepository.save(bankAccount);
-        return bankAccountMapper.fromBankAccount(updatedAccount);
+
+        // 4. Récupérer le client via OpenFeign pour l'inclure proprement dans le DTO de réponse
+        Customer customer = customerRestClient.getCustomerById(updatedAccount.getCustomerId());
+
+        BankAccountResponseDTO responseDTO = bankAccountMapper.fromBankAccount(updatedAccount);
+        responseDTO.setCustomer(customer);
+
+        return responseDTO;
     }
 
     @Override
