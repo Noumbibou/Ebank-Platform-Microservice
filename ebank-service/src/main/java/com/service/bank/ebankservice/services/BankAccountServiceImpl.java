@@ -7,6 +7,8 @@ import com.service.bank.ebankservice.feign.CustomerRestClient;
 import com.service.bank.ebankservice.mapper.BankAccountMapper;
 import com.service.bank.ebankservice.model.Customer;
 import com.service.bank.ebankservice.repositories.BankAccountRepository;
+import org.springframework.ai.mcp.annotation.McpTool;
+import org.springframework.ai.mcp.annotation.McpToolParam;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -27,7 +29,8 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccountResponseDTO saveAccount(BankAccountRequestDTO requestDTO) {
+    @McpTool(description = "save a new bank account")
+    public BankAccountResponseDTO saveAccount(@McpToolParam(description = "The bank account to save (balance, currency, type, customerId)") BankAccountRequestDTO requestDTO) {
 
         try {
             Customer customer = customerRestClient.getCustomerById(requestDTO.getCustomerId());
@@ -47,7 +50,8 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccountResponseDTO getAccount(String id) {
+    @McpTool(description = "Get a bank account by id")
+    public BankAccountResponseDTO getAccount(@McpToolParam(description = "the bank account id") String id) {
         BankAccount bankAccount = bankAccountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Compte bancaire introuvable"));
 
@@ -62,6 +66,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
+    @McpTool(description = "Get all bank accounts")
     public List<BankAccountResponseDTO> listAccounts() {
         List<BankAccount> bankAccounts = bankAccountRepository.findAll();
         return bankAccounts.stream()

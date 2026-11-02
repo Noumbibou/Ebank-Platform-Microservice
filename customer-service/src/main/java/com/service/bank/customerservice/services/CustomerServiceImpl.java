@@ -5,6 +5,8 @@ import com.service.bank.customerservice.dto.CustomerResponseDTO;
 import com.service.bank.customerservice.entities.Customer;
 import com.service.bank.customerservice.mapper.CustomerMapper;
 import com.service.bank.customerservice.repositories.CustomerRepository;
+import org.springframework.ai.mcp.annotation.McpTool;
+import org.springframework.ai.mcp.annotation.McpToolParam;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +23,8 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public CustomerResponseDTO addCustomer(CustomerRequestDTO customerRequestDTO) {
+    @McpTool(description = "save a new customer")
+    public CustomerResponseDTO addCustomer(@McpToolParam(description = "The customer to save (name, email, phone)") CustomerRequestDTO customerRequestDTO) {
         Customer customer = customerMapper.customerRequestDtoToCustomer(customerRequestDTO);
 
         Customer customerSave = customerRepository.save(customer);
@@ -48,6 +51,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    @McpTool(description = "Get All customers")
     public List<CustomerResponseDTO> customerList() {
 //        List<Customer> customerList = customerRepository.findAll();
 //        List<CustomerResponseDTO> customerResponseDTOList = new java.util.ArrayList<>(List.of());
@@ -61,7 +65,8 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public CustomerResponseDTO customer(Long id) {
+    @McpTool(description = "find a customer by id")
+    public CustomerResponseDTO customer(@McpToolParam(description = "The customer id") Long id) {
         Customer customer = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found"));
         return customerMapper.customerToCustomerReponseDto(customer);
     }

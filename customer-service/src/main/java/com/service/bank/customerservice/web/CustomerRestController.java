@@ -3,6 +3,7 @@ package com.service.bank.customerservice.web;
 import com.service.bank.customerservice.dto.CustomerRequestDTO;
 import com.service.bank.customerservice.dto.CustomerResponseDTO;
 import com.service.bank.customerservice.services.CustomerService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +17,6 @@ public class CustomerRestController {
             this.customerService = customerService;
         }
 
-        // Récupérer la liste de tous les clients (sous forme de DTO)
         @GetMapping
         public List<CustomerResponseDTO> getAllCustomers() {
             return customerService.customerList();
@@ -24,11 +24,11 @@ public class CustomerRestController {
 
         // Ajouter un client
         @PostMapping
-        public CustomerResponseDTO saveCustomer(@RequestBody CustomerRequestDTO customerRequestDTO) {
+        public CustomerResponseDTO saveCustomer(@Valid @RequestBody CustomerRequestDTO customerRequestDTO) {
             return customerService.addCustomer(customerRequestDTO);
         }
 
-        // Récupérer un client par son ID
+
         @GetMapping("/{id}")
         public CustomerResponseDTO getCustomerById(@PathVariable Long id) {
             return customerService.customer(id);
